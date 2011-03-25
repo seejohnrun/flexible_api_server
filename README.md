@@ -1,3 +1,5 @@
+__Don't use me yet - soon!__
+
 Wouldn't it be awesome if you could split your application in half a provide a beautiful API that would not only be used by the controller half of our application, but also be a clean, standardized public facing API?
 
     # id, title, created_at
