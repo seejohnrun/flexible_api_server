@@ -8,6 +8,7 @@ spec = Gem::Specification.new do |s|
   s.add_development_dependency('sqlite3')
   s.add_development_dependency('rack-test')
   s.add_dependency('flexible_api', '0.0.1')
+  s.add_dependency('json')
   s.add_dependency('activerecord')
   s.add_dependency('sinatra')
   s.add_dependency('sinatra-respond_to')

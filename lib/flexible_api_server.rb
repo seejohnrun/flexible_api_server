@@ -7,8 +7,10 @@ require 'json'
 require 'flexible_api'
 
 class ActiveRecord::Base
-  named_scope :limit, lambda { |l| { :limit => l } }
-  named_scope :offset, lambda { |o| { :offset => o } }
+  if ActiveRecord::VERSION::MAJOR < 3
+    named_scope :limit, lambda { |l| { :limit => l } }
+    named_scope :offset, lambda { |o| { :offset => o } }
+  end
 end
 
 module FlexibleApiServer
