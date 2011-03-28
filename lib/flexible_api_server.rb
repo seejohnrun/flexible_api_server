@@ -5,7 +5,11 @@ require 'sinatra/respond_to'
 require 'json'
 
 require 'flexible_api'
-require 'active_record/errors'
+
+class ActiveRecord::Base
+  named_scope :limit, lambda { |l| { :limit => l } }
+  named_scope :offset, lambda { |o| { :offset => o } }
+end
 
 module FlexibleApiServer
 
@@ -14,13 +18,26 @@ module FlexibleApiServer
     register Sinatra::RespondTo
     set :assume_xhr_is_js, true
     set :default_content, :js
-    #set :raise_errors, false
-    #set :show_exceptions, false
+    set :raise_errors, false
+    set :show_exceptions, false
 
     set :views, File.dirname(__FILE__) + '/../views'
 
+    FILTERED_COLUMNS = [:password, :password_confirmation]
+
+    def assign(k, v)
+      @assign ||= {}
+      @assign[k] = v
+      nil
+    end
+
     def free_render(code, hash)
       status code
+      # Filter some things out
+      FILTERED_COLUMNS.each do |column|
+        hash[column] = '[filtered]' if hash.has_key?(column)
+      end if hash.is_a?(Hash)
+      # and respond
       respond_to do |wants|
         wants.js { hash.to_json }
         wants.xml { hash.to_xml }
@@ -48,8 +65,9 @@ module FlexibleApiServer
 
     post '/:model' do
       model_klass = params[:model].singularize.camelize.constantize
-      record = model_klass.new(request.POST)
 
+      record = model_klass.new(request.POST)
+      @assign.each { |k, v| record.send(:"#{k}=", v) } unless @assign.nil?
       if record.save
         free_render 200, record.to_hash(requested_level)
       else
@@ -87,6 +105,7 @@ module FlexibleApiServer
       record = model_klass.find(params[:id])
 
       record.attributes = request.POST
+      @assign.each { |k, v| record.send(:"#{k}=", v) } unless @assign.nil?
       if record.save
         free_render 200, record.to_hash(requested_level)
       else
@@ -99,7 +118,20 @@ module FlexibleApiServer
     end
 
     post '/:model/:id/:relation' do
-      free_render 404, :message => 'not implemented'
+
+      model_klass = params[:model].singularize.camelize.constantize
+
+      model_instance = model_klass.find(params[:id])
+      relation = model_instance.send(params[:relation].to_sym)
+
+      record = relation.new(request.POST)
+      @assign.each { |k, v| record.send(:"#{k}=", v) } unless @assign.nil?
+
+      if record.save
+        free_render 200, record.to_hash(requested_level)
+      else
+        free_render 422, :message => 'Validation error', :errors => record.errors
+      end
     end
 
     get '/:model/:id/:relation' do
