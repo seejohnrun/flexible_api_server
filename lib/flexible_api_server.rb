@@ -22,7 +22,6 @@ module FlexibleApiServer
     set :default_content, :js
     set :raise_errors, false
     set :show_exceptions, false
-
     set :views, File.dirname(__FILE__) + '/../views'
 
     FILTERED_COLUMNS = [:password, :password_confirmation]
