@@ -89,13 +89,15 @@
             </div>
           <% end %>
 
-          <% unless true || model[:associations].empty? %>
+          <% unless (associations = model.reflect_on_all_associations).empty? %>
             <div class="associations">
-              <% model[:associations].each do |assoc| %>
+              <% associations.each do |assoc| %>
+                <% next unless FlexibleApi.flexible_models.include?(assoc.klass) %>
+                <% type = assoc.klass.name.pluralize.underscore.downcase %>
                 <div class="association">
-                  <%= "/#{assoc[:name]}" %>
-                  <% unless assoc[:name].to_s == assoc[:type] %>
-                    <%= "(type: #{assoc[:type]})" %>
+                  <%= "/#{assoc.name}" %>
+                  <% unless assoc.name.to_s == type %>
+                    <%= "(type: #{type})" %>
                   <% end %>
                 </div>
               <% end %>
