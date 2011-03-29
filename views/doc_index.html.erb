@@ -93,7 +93,9 @@
             <div class="associations">
               <% associations.each do |assoc| %>
                 <% next unless FlexibleApi.flexible_models.include?(assoc.klass) %>
-                <% type = assoc.klass.name.pluralize.underscore.downcase %>
+                <% begin %>
+                  <% type = assoc.klass.name.pluralize.underscore.downcase %>
+                <% rescue NameError; next; end %>
                 <div class="association">
                   <%= "/#{assoc.name}" %>
                   <% unless assoc.name.to_s == type %>
