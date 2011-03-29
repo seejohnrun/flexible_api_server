@@ -152,9 +152,8 @@ module FlexibleApiServer
 
       return free_render 200, nil if query.nil?
 
-      options = { :request_level => requested_level }
       if query.is_a?(ActiveRecord::Base)
-        free_render 200, query.to_hash(options)
+        free_render 200, query.to_hash(requested_level)
       else
         # Scope it
         query = add_scopes(query, scope_param)
@@ -163,7 +162,7 @@ module FlexibleApiServer
           free_render 200, :count => query.count
         else
           query = add_limit_and_offset(query)
-          free_render 200, query.find_all_hash(options)
+          free_render 200, query.find_all_hash(:request_level => requested_level)
         end
       end
     end
