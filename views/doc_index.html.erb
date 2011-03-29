@@ -90,12 +90,11 @@
           <% end %>
 
           <% unless (associations = model.reflect_on_all_associations).empty? %>
-            <div class="associations">
+           <div class="associations">
               <% associations.each do |assoc| %>
-                <% next unless FlexibleApi.flexible_models.include?(assoc.klass) %>
-                <% begin %>
-                  <% type = assoc.klass.name.pluralize.underscore.downcase %>
-                <% rescue NameError; next; end %>
+                <% begin; klass = assoc.klass; rescue NameError; next; end %>
+                <% next if klass.nil? || !FlexibleApi.flexible_models.include?(klass) %>
+                <% type = klass.name.pluralize.underscore.downcase %>
                 <div class="association">
                   <%= "/#{assoc.name}" %>
                   <% unless assoc.name.to_s == type %>
