@@ -8,6 +8,12 @@ describe FlexibleApiServer do
     FlexibleApiServer::App
   end
 
+  it 'should give a 404 to favicon.ico' do
+    get '/favicon.ico'
+    last_response.should be_not_found
+    last_response.headers['Cache-Control'].should =~ /max-age=7776000$/
+  end
+
   it 'should be able to get the doc index' do
     get '/'
     last_response.should be_ok

@@ -26,6 +26,7 @@ module FlexibleApiServer
     set :views, File.dirname(__FILE__) + '/../views'
 
     FILTERED_COLUMNS = [:password, :password_confirmation]
+    ALLOWED_FORMATS = [:js, :xml]
 
     def assign(k, v)
       @assign ||= {}
@@ -33,13 +34,14 @@ module FlexibleApiServer
       nil
     end
 
-    def free_render(code, hash)
+    def free_render(code, hash = '') # blank by default, not nil
       status code
       # Filter some things out
       FILTERED_COLUMNS.each do |column|
         hash[column] = '[filtered]' if hash.has_key?(column)
       end if hash.is_a?(Hash)
       # and respond
+      format :js unless ALLOWED_FORMATS.include? format
       respond_to do |wants|
         wants.js { hash.to_json }
         wants.xml { hash.to_xml }
@@ -63,6 +65,11 @@ module FlexibleApiServer
     # TODO too generic
     error NoMethodError do
       free_render 404, :message => "Unknown method '#{request.env['sinatra.error'].name}' on #{params[:model]}"
+    end
+
+    get '/favicon' do
+      headers['Cache-Control'] = 'public, max-age=7776000'
+      free_render 404
     end
 
     post '/:model' do
