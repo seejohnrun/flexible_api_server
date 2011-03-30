@@ -8,6 +8,10 @@ describe FlexibleApiServer do
     FlexibleApiServer::App
   end
 
+  it 'should be able to see its own version' do
+    FlexibleApiServer::VERSION.should_not be_empty
+  end
+
   it 'should give a 404 to favicon.ico' do
     get '/favicon.ico'
     last_response.should be_not_found
