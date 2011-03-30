@@ -33,6 +33,9 @@ module FlexibleApiServer
       nil
     end
 
+    JSON_CONTENT_TYPE = 'application/json;charset=utf-8'
+    XML_CONTENT_TYPE  = 'application/xml;charset=utf-8'
+
     def free_render(code, hash = '') # blank by default, not nil
       status code
       # Filter some things out
@@ -42,8 +45,14 @@ module FlexibleApiServer
       # and respond
       format :js unless ALLOWED_FORMATS.include? format
       respond_to do |wants|
-        wants.js { hash.to_json }
-        wants.xml { hash.to_xml }
+        wants.js do
+          headers['Content-type'] = JSON_CONTENT_TYPE
+          hash.to_json
+        end
+        wants.xml do
+          headers['Content-type'] = XML_CONTENT_TYPE
+          hash.to_xml
+        end
       end
     end
 
