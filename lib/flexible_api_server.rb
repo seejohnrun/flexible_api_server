@@ -18,6 +18,10 @@ module FlexibleApiServer
   class App < Sinatra::Base
 
     register Sinatra::RespondTo
+    mime_type :jsonp, 'application/javascript'
+    mime_type :js, 'application/json'
+    mime_type :xml, 'application/xml'
+
     set :assume_xhr_is_js, true
     set :default_content, :js
     set :raise_errors, false
@@ -25,16 +29,13 @@ module FlexibleApiServer
     set :views, File.dirname(__FILE__) + '/../views'
 
     FILTERED_COLUMNS = [:password, :password_confirmation]
-    ALLOWED_FORMATS = [:js, :xml]
+    ALLOWED_FORMATS = [:js, :xml, :jsonp]
 
     def assign(k, v)
       @assign ||= {}
       @assign[k] = v
       nil
     end
-
-    JSON_CONTENT_TYPE = 'application/json;charset=utf-8'
-    XML_CONTENT_TYPE  = 'application/xml;charset=utf-8'
 
     def free_render(code, hash = '') # blank by default, not nil
       status code
@@ -43,14 +44,16 @@ module FlexibleApiServer
         hash[column] = '[filtered]' if hash.has_key?(column)
       end if hash.is_a?(Hash)
       # and respond
+      charset 'utf-8'
       format :js unless ALLOWED_FORMATS.include? format
       respond_to do |wants|
+        wants.jsonp do
+          (params[:callback] || 'callback') + "(#{hash.to_json});"
+        end
         wants.js do
-          headers['Content-type'] = JSON_CONTENT_TYPE
           hash.to_json
         end
         wants.xml do
-          headers['Content-type'] = XML_CONTENT_TYPE
           hash.to_xml
         end
       end
