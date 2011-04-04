@@ -63,6 +63,14 @@ You can build levels as combinations of other levels like so:
 
 You get free arguments for `?limit` and `?offset` for that pagination you have to do
 
+## Request Formats
+
+You can use Accept headers, `.xxx`, or `?format=` to specify any of the following three:
+
+* `json`
+* `xml`
+* `jsonp` with an optional `callback=`
+
 ---
 
 ## Notations
