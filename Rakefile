@@ -1,5 +1,4 @@
-require 'spec/rake/spectask'
-require 'lib/flexible_api_server/version'
+require File.dirname(__FILE__) + '/lib/flexible_api_server/version'
  
 task :build do
   system "gem build flexible_api_server.gemspec"
