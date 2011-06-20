@@ -1,6 +1,6 @@
 require 'bundler/setup'
 require 'active_record'
-require 'sinatra'
+require 'sinatra/base'
 require 'sinatra/respond_to'
 require 'json'
 
