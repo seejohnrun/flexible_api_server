@@ -203,14 +203,19 @@ module FlexibleApiServer
 
     DEFAULT_LIMIT = 50
 
+    # override this method to allow backspace (%5C) escaping commas, parentheses, and backspaces in params
     def add_scopes(query, scope_param)
       scopes = []
       scopes.concat scope_param.split ':' unless scope_param.nil?
       scopes.concat params[:scopes] if params[:scopes].is_a?(Array)
       scopes.each do |scope|
-        # TODO remove this ugliness
-        method, arg_string = scope.split '('
-        if !arg_string.nil? && args = arg_string.chop.split(',').map(&:strip)
+        method, arg_string = scope.split(/(?<=[^\\])\(/)
+        if !arg_string.nil?
+          arg_string = arg_string.chop.gsub(/\\\\/, "\\backspace")
+          # split on non-escaped commas
+          args = arg_string.split(/(?<=[^\\]),/).map(&:strip)
+          # map escaped characters to normal values
+          args = args.map {|arg| arg.gsub(/\\,/, ',')}.map {|arg| arg.gsub(/\\\(/, '(')}.map {|arg| arg.gsub(/\\backspace/, '\\')}
           query = query.send method.to_sym, *args
         else
           query = query.send method.to_sym
