@@ -13,11 +13,18 @@ class ActiveRecord::Base
   end
 end
 
+
+
 module FlexibleApiServer
 
   class App < Sinatra::Base
-
+    # to allow periods in parameters without it being a MIME type, respondto tries to replace all periods, so we intercept before
+    before do 
+      request.path_info = request.path_info.sub(/\.(?=([.+\)]))/, '\period')
+    end
+    
     register Sinatra::RespondTo
+  
     mime_type :jsonp, 'application/javascript'
     mime_type :js, 'application/json'
     mime_type :xml, 'application/xml'
@@ -211,7 +218,7 @@ module FlexibleApiServer
       scopes.each do |scope|
         method, arg_string = scope.split(/(?<=[^\\])\(/)
         if !arg_string.nil?
-          arg_string = arg_string.chop.gsub(/\\\\/, "\\backspace")
+          arg_string = arg_string.chop.gsub(/\\\\/, "\\backspace").gsub(/\\period/, '.')
           # split on non-escaped commas
           args = arg_string.split(/(?<=[^\\]),/).map(&:strip)
           # map escaped characters to normal values
