@@ -20,7 +20,7 @@ module FlexibleApiServer
   class App < Sinatra::Base
     # to allow periods in parameters without it being a MIME type, respondto tries to replace all periods, so we intercept before
     before do 
-      request.path_info = request.path_info.sub(/\.(?=([.+\)]))/, '\period')
+      request.path_info = request.path_info.sub(/\.(?=([.*\)]))/, '\period')
     end
     
     register Sinatra::RespondTo
