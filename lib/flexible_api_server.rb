@@ -13,11 +13,18 @@ class ActiveRecord::Base
   end
 end
 
+
+
 module FlexibleApiServer
 
   class App < Sinatra::Base
-
+    # to allow periods in parameters without it being a MIME type, respondto tries to replace all periods, so we intercept before
+    before do 
+      request.path_info = request.path_info.sub(/\.(?=([.*\)]))/, '\period')
+    end
+    
     register Sinatra::RespondTo
+  
     mime_type :jsonp, 'application/javascript'
     mime_type :js, 'application/json'
     mime_type :xml, 'application/xml'
@@ -203,14 +210,19 @@ module FlexibleApiServer
 
     DEFAULT_LIMIT = 50
 
+    # override this method to allow backspace (%5C) escaping commas, parentheses, and backspaces in params
     def add_scopes(query, scope_param)
       scopes = []
       scopes.concat scope_param.split ':' unless scope_param.nil?
       scopes.concat params[:scopes] if params[:scopes].is_a?(Array)
       scopes.each do |scope|
-        # TODO remove this ugliness
-        method, arg_string = scope.split '('
-        if !arg_string.nil? && args = arg_string.chop.split(',').map(&:strip)
+        method, arg_string = scope.split(/(?<=[^\\])\(/)
+        if !arg_string.nil?
+          arg_string = arg_string.chop.gsub(/\\\\/, "\\backspace").gsub(/\\period/, '.')
+          # split on non-escaped commas
+          args = arg_string.split(/(?<=[^\\]),/).map(&:strip)
+          # map escaped characters to normal values
+          args = args.map {|arg| arg.gsub(/\\,/, ',')}.map {|arg| arg.gsub(/\\\(/, '(')}.map {|arg| arg.gsub(/\\backspace/, '\\')}
           query = query.send method.to_sym, *args
         else
           query = query.send method.to_sym
